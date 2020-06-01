@@ -1,0 +1,23 @@
+language: generic
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t abdwebus/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true abdwebus/react-test npm test 
+
+after_success:
+    - docker build -t abdwebus/complex-client ./client
+    - docker build -t abdwebus/complex-nginx ./nginx
+    - docker build -t abdwebus/complex-server ./server
+    - docker build -t abdwebus/complex-worker ./worker
+    # Login to docker hub
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    # Push to docker hub
+    - docker push abdwebus/complex-client
+    - docker push abdwebus/complex-nginx
+    - docker push abdwebus/complex-server
+    - docker push abdwebus/complex-worker
